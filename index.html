@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Expense Tracker</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js"></script>
+  
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">💸 <span>SmartExpense</span></div>
+    <nav>
+      <a href="#" class="nav-link active" data-page="dashboard">📊 Dashboard</a>
+      <a href="#" class="nav-link" data-page="add">➕ Add Transaction</a>
+      <a href="#" class="nav-link" data-page="transactions">🧾 Transactions</a>
+      <a href="#" class="nav-link" data-page="reports">📈 Reports</a>
+      <a href="#" class="nav-link" data-page="budget">🎯 Budget</a>
+    </nav>
+    <button id="themeToggle" class="btn light">🌙 Dark Mode</button>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="Menu">☰</button>
+      <h1 id="pageTitle">Dashboard</h1>
+    </header>
+
+    <!-- Dashboard -->
+    <section class="page active" id="page-dashboard">
+      <div class="warn hidden" id="dashWarn"></div>
+      <div class="cards">
+        <div class="card stat"><span class="ico">💰</span><div><p>Total Balance</p><h2 id="sBalance">₹0.00</h2></div></div>
+        <div class="card stat"><span class="ico">📥</span><div><p>Total Income</p><h2 id="sIncome" class="green">₹0.00</h2></div></div>
+        <div class="card stat"><span class="ico">📤</span><div><p>Total Expenses</p><h2 id="sExpense" class="red">₹0.00</h2></div></div>
+        <div class="card stat"><span class="ico">🏦</span><div><p>Remaining Balance</p><h2 id="sRemaining">₹0.00</h2></div></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Income vs Expense (Last 6 Months)</h3><div class="chart-box"><canvas id="dashChart"></canvas></div></div>
+        <div class="card"><h3>Monthly Expense Summary</h3><div id="monthSummary"></div></div>
+      </div>
+      <div class="card"><h3>Recent Transactions</h3><div id="recentList"></div></div>
+    </section>
+
+    <!-- Add / Edit Transaction -->
+    <section class="page" id="page-add">
+      <div class="card form-card">
+        <h3 id="formTitle">Add Transaction</h3>
+        <form id="txForm">
+          <input type="hidden" id="editId">
+          <div class="form-grid">
+            <label>Transaction Title
+              <input type="text" id="title" placeholder="e.g. Grocery shopping" maxlength="60" required>
+            </label>
+            <label>Amount (₹)
+              <input type="number" id="amount" placeholder="0.00" min="0.01" step="0.01" required>
+            </label>
+            <label>Transaction Type
+              <select id="type">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </label>
+            <label>Category
+              <select id="category"></select>
+            </label>
+            <label>Date
+              <input type="date" id="date" required>
+            </label>
+          </div>
+          <label>Description
+            <textarea id="desc" rows="3" placeholder="Optional notes..." maxlength="200"></textarea>
+          </label>
+          <div class="row">
+            <button type="submit" class="btn primary" id="submitBtn">Add Transaction</button>
+            <button type="button" class="btn light-outline hidden" id="cancelEdit">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- All Transactions -->
+    <section class="page" id="page-transactions">
+      <div class="card">
+        <div class="filters">
+          <input type="text" id="search" placeholder="🔍 Search transactions...">
+          <select id="fCat"></select>
+          <input type="date" id="fDate" title="Filter by date">
+          <select id="sort">
+            <option value="date-desc">Date: Newest</option>
+            <option value="date-asc">Date: Oldest</option>
+            <option value="amt-desc">Amount: High → Low</option>
+            <option value="amt-asc">Amount: Low → High</option>
+          </select>
+          <button class="btn light-outline" id="resetFilters">Reset</button>
+        </div>
+        <div class="row end">
+          <button class="btn primary" id="csvBtn">⬇ Download CSV</button>
+          <button class="btn danger" id="clearBtn">🗑 Clear All</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Title</th><th>Category</th><th>Type</th><th>Amount</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="txBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reports -->
+    <section class="page" id="page-reports">
+      <div class="card">
+        <div class="row between">
+          <h3>Expense Report</h3>
+          <select id="repPeriod">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Period</th><th>Transactions</th><th>Total Expense</th></tr></thead>
+            <tbody id="repBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card"><h3>Category-wise Expenses</h3><div class="chart-box"><canvas id="catChart"></canvas></div></div>
+        <div class="card"><h3>Income vs Expense</h3><div class="chart-box"><canvas id="repChart"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- Budget -->
+    <section class="page" id="page-budget">
+      <div class="card form-card">
+        <h3>Monthly Budget</h3>
+        <div class="row">
+          <input type="number" id="budgetInput" placeholder="Enter monthly budget (₹)" min="1" step="0.01">
+          <button class="btn primary" id="saveBudget">Save Budget</button>
+        </div>
+        <div class="warn hidden" id="budgetWarn"></div>
+        <div class="budget-stats">
+          <div><p>Budget</p><h2 id="bBudget">₹0.00</h2></div>
+          <div><p>Spent This Month</p><h2 id="bSpent" class="red">₹0.00</h2></div>
+          <div><p>Remaining</p><h2 id="bRemain" class="green">₹0.00</h2></div>
+        </div>
+        <div class="progress"><div id="bBar"></div></div>
+        <p class="muted" id="bPercent">0% used</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast"></div>
+  <script src="js/script.js"></script>
+</body>
+</html>
